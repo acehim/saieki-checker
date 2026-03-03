@@ -2323,8 +2323,9 @@
           <label>モデル</label>
           <select id="set-openai-model" class="ldg-select" style="flex:1">
             <option value="gpt-4o-mini" selected>gpt-4o-mini ⭐ コスパ最高（推奨）</option>
-            <option value="gpt-4o">gpt-4o　最高精度（高コスト）</option>
-            <option value="gpt-4-turbo">gpt-4-turbo　旧世代高精度</option>
+            <option value="gpt-4o">gpt-4o　高精度</option>
+            <option value="gpt-4.1-mini">gpt-4.1-mini　最新軽量</option>
+            <option value="gpt-4.1">gpt-4.1　最新高精度</option>
           </select>
         </div>
       </div>
@@ -3075,6 +3076,10 @@ function init() {
   // 📋 仕入台帳初期化
   ldgInit();
   // 🤖 Gemini UI初期化（保存済みAPIキーを反映）
+  // 廃止モデルをlocalStorageから削除
+  if (localStorage.getItem('openaiModel') === 'gpt-4-turbo') {
+    localStorage.setItem('openaiModel', 'gpt-4o-mini');
+  }
   updateGeminiUI();
   updateCameraButtonText();
   // ライブレート取得（非同期・失敗しても動作継続）
