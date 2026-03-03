@@ -2259,45 +2259,84 @@
       <span id="multiccy-saved-msg" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
     </div>
 
-    <!-- ===== Gemini AI設定 ===== -->
-    <div class="settings-card" style="border-color:rgba(66,133,244,0.4);background:linear-gradient(135deg,rgba(66,133,244,0.05),rgba(234,67,53,0.03))">
-      <h3 style="color:#8ab4f8">🤖 Gemini AI — 商品自動識別</h3>
-      <div class="settings-hint" style="margin-bottom:14px">
-        カメラで撮影するだけで <strong style="color:#8ab4f8">ブランド・モデル・価格を自動識別</strong> し、即計算します。<br>
-        Google AI Studio の無料APIキーを入力してください。<br>
-        <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#8ab4f8;text-decoration:underline">▶ aistudio.google.com でキーを取得（無料）</a>
+    <!-- ===== AI設定（Gemini / OpenAI切替） ===== -->
+    <div class="settings-card" id="ai-settings-card" style="border-color:rgba(66,133,244,0.4);background:linear-gradient(135deg,rgba(66,133,244,0.05),rgba(234,67,53,0.03))">
+      <h3 style="color:#8ab4f8">🤖 AI — 商品自動識別</h3>
+      <div class="settings-hint" style="margin-bottom:12px">
+        カメラで撮影するだけで <strong style="color:#8ab4f8">ブランド・モデル・価格を自動識別</strong> します。<br>
+        GeminiまたはChatGPT（OpenAI）のどちらかを選択してください。
       </div>
-      <div class="settings-row">
-        <label>Gemini APIキー</label>
-        <input type="password" id="set-gemini-key" placeholder="AIza..." autocomplete="off"
-          style="font-family:monospace;letter-spacing:0.05em;flex:1;min-width:0">
-        <button onclick="toggleGeminiKeyVisibility()" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:12px;white-space:nowrap">👁 表示</button>
+
+      <!-- プロバイダー切替 -->
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button id="ai-tab-gemini" onclick="switchAiProvider('gemini')"
+          style="flex:1;padding:8px;border-radius:10px;border:2px solid rgba(66,133,244,0.6);background:rgba(66,133,244,0.15);color:#8ab4f8;font-weight:700;cursor:pointer;font-size:13px">
+          🔵 Gemini（Google）
+        </button>
+        <button id="ai-tab-openai" onclick="switchAiProvider('openai')"
+          style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-weight:600;cursor:pointer;font-size:13px">
+          🟢 ChatGPT（OpenAI）
+        </button>
       </div>
-      <div class="settings-row" style="margin-top:8px">
-        <label>モデル</label>
-        <select id="set-gemini-model" class="ldg-select" style="flex:1">
-          <optgroup label="── 最新世代（有料プラン推奨）">
-            <option value="gemini-2.5-pro-preview-03-25">gemini-2.5-pro ⭐ 最高精度（有料）</option>
-            <option value="gemini-2.0-pro-exp">gemini-2.0-pro-exp　高精度（有料）</option>
-            <option value="gemini-2.0-flash" selected>gemini-2.0-flash　バランス型（無料OK）</option>
-            <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite　軽量・低コスト</option>
-          </optgroup>
-          <optgroup label="── 旧世代">
-            <option value="gemini-1.5-pro">gemini-1.5-pro　旧世代Pro（有料）</option>
-            <option value="gemini-1.5-flash">gemini-1.5-flash　旧世代・安定</option>
-          </optgroup>
-        </select>
+
+      <!-- ===== Gemini セクション ===== -->
+      <div id="ai-section-gemini">
+        <div class="settings-hint" style="margin-bottom:10px;font-size:11px">
+          <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#8ab4f8;text-decoration:underline">▶ aistudio.google.com でAPIキーを取得（無料）</a>
+        </div>
+        <div class="settings-row">
+          <label>APIキー</label>
+          <input type="password" id="set-gemini-key" placeholder="AIza..." autocomplete="off"
+            style="font-family:monospace;letter-spacing:0.05em;flex:1;min-width:0">
+          <button onclick="toggleAiKeyVisibility('set-gemini-key')" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:12px;white-space:nowrap">👁</button>
+        </div>
+        <div class="settings-row" style="margin-top:8px">
+          <label>モデル</label>
+          <select id="set-gemini-model" class="ldg-select" style="flex:1">
+            <optgroup label="── 最新世代">
+              <option value="gemini-2.5-pro-preview-03-25">gemini-2.5-pro ⭐ 最高精度</option>
+              <option value="gemini-2.0-pro-exp">gemini-2.0-pro-exp　高精度</option>
+              <option value="gemini-2.0-flash" selected>gemini-2.0-flash　バランス型（無料OK）</option>
+              <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite　軽量</option>
+            </optgroup>
+            <optgroup label="── 旧世代">
+              <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+              <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+            </optgroup>
+          </select>
+        </div>
       </div>
-      <div style="margin-top:6px;font-size:11px;color:var(--muted)">
-        💡 有料契約済みなら <strong style="color:#8ab4f8">gemini-2.5-pro</strong> が最高精度でおすすめ。接続テストで動作確認できます。
+
+      <!-- ===== OpenAI セクション ===== -->
+      <div id="ai-section-openai" style="display:none">
+        <div class="settings-hint" style="margin-bottom:10px;font-size:11px">
+          <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#4ade80;text-decoration:underline">▶ platform.openai.com でAPIキーを取得</a>
+          　💡 gpt-4o-miniが最もコスパ良（1回約0.3円）
+        </div>
+        <div class="settings-row">
+          <label>APIキー</label>
+          <input type="password" id="set-openai-key" placeholder="sk-..." autocomplete="off"
+            style="font-family:monospace;letter-spacing:0.05em;flex:1;min-width:0">
+          <button onclick="toggleAiKeyVisibility('set-openai-key')" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:12px;white-space:nowrap">👁</button>
+        </div>
+        <div class="settings-row" style="margin-top:8px">
+          <label>モデル</label>
+          <select id="set-openai-model" class="ldg-select" style="flex:1">
+            <option value="gpt-4o-mini" selected>gpt-4o-mini ⭐ コスパ最高（推奨）</option>
+            <option value="gpt-4o">gpt-4o　最高精度（高コスト）</option>
+            <option value="gpt-4-turbo">gpt-4-turbo　旧世代高精度</option>
+          </select>
+        </div>
       </div>
+
+      <!-- 共通ボタン -->
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="saveGeminiSettings()" style="background:linear-gradient(135deg,#1a73e8,#4285f4)">💾 保存</button>
-        <button class="btn btn-secondary" onclick="testGeminiKey()" id="gemini-test-btn">🔬 接続テスト</button>
+        <button class="btn btn-primary" onclick="saveAiSettings()" id="ai-save-btn" style="background:linear-gradient(135deg,#1a73e8,#4285f4)">💾 保存</button>
+        <button class="btn btn-secondary" onclick="testAiKey()" id="ai-test-btn">🔬 接続テスト</button>
         <span id="gemini-status-msg" style="font-size:12px;align-self:center"></span>
       </div>
       <div id="gemini-active-badge" style="display:none;margin-top:10px;padding:6px 12px;background:rgba(66,133,244,0.12);border:1px solid rgba(66,133,244,0.3);border-radius:8px;font-size:12px;color:#8ab4f8">
-        ✅ Gemini AI 有効 — カメラ撮影時に自動で商品識別が起動します
+        ✅ AI 有効 — カメラ撮影時に自動で商品識別が起動します
       </div>
     </div>
 
@@ -3259,9 +3298,10 @@ async function onBarcodeDetected(barcode, format) {
 
   } else if (scanTarget === 'scanmode') {
     closeScanModal();
-    const geminiKey = localStorage.getItem('geminiApiKey');
-    if (geminiKey) {
-      showToast(`🤖 Gemini AIでバーコードを商品識別中...`, 'info');
+    const provider  = localStorage.getItem('aiProvider') || 'gemini';
+    const aiKey     = provider === 'openai' ? localStorage.getItem('openaiApiKey') : localStorage.getItem('geminiApiKey');
+    if (aiKey) {
+      showToast(`🤖 AIでバーコードを商品識別中...`, 'info');
       await smGeminiIdentifyBarcode(barcode, formatLabel);
     } else {
       smShowBarcodeSearchPanel(barcode, formatLabel);
@@ -3274,38 +3314,44 @@ async function onBarcodeDetected(barcode, format) {
   }
 }
 
-// バーコード番号をGeminiに送って商品識別（画像なし・テキストのみ）
+// バーコード番号をAIに送って商品識別（画像なし・テキストのみ）
 async function smGeminiIdentifyBarcode(barcode, formatLabel) {
   const statusEl = document.getElementById('sm-ocr-status');
   statusEl.textContent = '🤖 バーコードから商品識別中...';
   statusEl.className = 'sm-ocr-status active';
 
-  const apiKey = localStorage.getItem('geminiApiKey');
-  const model  = localStorage.getItem('geminiModel') || 'gemini-2.0-flash';
+  const provider = localStorage.getItem('aiProvider') || 'gemini';
   const prompt = `バーコード番号「${barcode}」（形式: ${formatLabel}）からブランド品を識別してください。
 必ず以下のJSON形式のみで回答してください（説明文・マークダウン不要）:
-{
-  "brand": "ブランド名（例: Hermès, Rolex, Gucci）",
-  "model": "モデル名・サイズ・型番",
-  "price_eur": null,
-  "material": null,
-  "color": null,
-  "confidence": "high/medium/low",
-  "price_visible": false
-}
+{"brand":"ブランド名","model":"モデル名・型番","price_eur":null,"material":null,"color":null,"confidence":"high/medium/low","price_visible":false}
 不明な場合は各フィールドをnullにしてください。`;
 
   try {
-    const url  = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-    const body = { contents: [{ parts: [{ text: prompt }] }],
-                   generationConfig: { temperature: 0.1, maxOutputTokens: 256, responseMimeType: 'application/json' } };
-    const res  = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data    = await res.json();
-    const text    = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('応答が空');
-    const cleaned = text.replace(/```json\n?|\n?```/g, '').trim();
-    const result  = JSON.parse(cleaned);
+    let result;
+    if (provider === 'openai') {
+      const apiKey = localStorage.getItem('openaiApiKey');
+      const model  = localStorage.getItem('openaiModel') || 'gpt-4o-mini';
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }],
+          max_tokens: 256, temperature: 0.1, response_format: { type: 'json_object' } })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      result = JSON.parse(data.choices?.[0]?.message?.content || '{}');
+    } else {
+      const apiKey = localStorage.getItem('geminiApiKey');
+      const model  = localStorage.getItem('geminiModel') || 'gemini-2.0-flash';
+      const url    = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{parts:[{text:prompt}]}],
+          generationConfig:{temperature:0.1, maxOutputTokens:256, responseMimeType:'application/json'} }) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      result = JSON.parse((text||'{}').replace(/```json\n?|\n?```/g,'').trim());
+    }
 
     if (result.brand || result.model) {
       await smHandleGeminiResult(result, null);
@@ -3314,7 +3360,7 @@ async function smGeminiIdentifyBarcode(barcode, formatLabel) {
       smShowBarcodeSearchPanel(barcode, formatLabel);
     }
   } catch(err) {
-    console.error('[Gemini barcode]', err);
+    console.error('[AI barcode]', err);
     smShowBarcodeSearchPanel(barcode, formatLabel);
   }
 }
@@ -3411,61 +3457,68 @@ function bulkSearchBarcodes() {
 // AI一括識別：全バーコードをGeminiに一括で投げて識別
 async function bulkGeminiIdentify() {
   if (barcodeMultiList.length === 0) return;
-  const apiKey = localStorage.getItem('geminiApiKey');
-  if (!apiKey) { showToast('Gemini APIキーを設定してください', 'error'); return; }
+  const provider = localStorage.getItem('aiProvider') || 'gemini';
+  const apiKey   = provider === 'openai' ? localStorage.getItem('openaiApiKey') : localStorage.getItem('geminiApiKey');
+  if (!apiKey) { showToast('AIのAPIキーを設定してください', 'error'); return; }
 
   closeScanModal();
   const statusEl = document.getElementById('sm-ocr-status');
   statusEl.textContent = `🤖 ${barcodeMultiList.length}件をAI一括識別中...`;
   statusEl.className = 'sm-ocr-status active';
 
-  const model  = localStorage.getItem('geminiModel') || 'gemini-2.0-flash';
   const barcodeText = barcodeMultiList.map((item, i) =>
     `${i+1}. バーコード「${item.barcode}」（${item.label}）`
   ).join('\n');
 
   const prompt = `以下のバーコード番号リストから、それぞれのブランド品を識別してください。
 ${barcodeText}
-
-必ず以下のJSON配列形式のみで回答してください（説明文・マークダウン不要）:
-[
-  { "index": 1, "brand": "Hermès", "model": "バーキン30", "price_eur": 10600, "confidence": "high" },
-  ...
-]
+必ず以下のJSON配列形式のみで回答してください:
+[{"index":1,"brand":"Hermès","model":"バーキン30","price_eur":10600,"confidence":"high"},...]
 識別できない場合は brand と model を null にしてください。`;
 
   try {
-    const url  = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-    const body = { contents: [{ parts: [{ text: prompt }] }],
-                   generationConfig: { temperature: 0.1, maxOutputTokens: 1024, responseMimeType: 'application/json' } };
-    const res  = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data    = await res.json();
-    const text    = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('応答が空');
-    const cleaned = text.replace(/```json\n?|\n?```/g, '').trim();
-    const results = JSON.parse(cleaned);
+    let results;
+    if (provider === 'openai') {
+      const model = localStorage.getItem('openaiModel') || 'gpt-4o-mini';
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }],
+          max_tokens: 1024, temperature: 0.1, response_format: { type: 'json_object' } })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const parsed = JSON.parse(data.choices?.[0]?.message?.content || '{}');
+      results = Array.isArray(parsed) ? parsed : (parsed.items || parsed.results || []);
+    } else {
+      const model = localStorage.getItem('geminiModel') || 'gemini-2.0-flash';
+      const url   = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const res   = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{parts:[{text:prompt}]}],
+          generationConfig:{temperature:0.1,maxOutputTokens:1024,responseMimeType:'application/json'} }) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data  = await res.json();
+      const text  = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const parsed = JSON.parse((text||'[]').replace(/```json\n?|\n?```/g,'').trim());
+      results = Array.isArray(parsed) ? parsed : (parsed.items || parsed.results || []);
+    }
 
-    // 結果をスキャン済みリストに反映
     results.forEach(r => {
       const idx = r.index - 1;
       if (idx >= 0 && idx < barcodeMultiList.length) {
-        barcodeMultiList[idx].identified = (r.brand || r.model)
-          ? `${r.brand || ''} ${r.model || ''}`.trim()
-          : null;
+        barcodeMultiList[idx].identified = (r.brand || r.model) ? `${r.brand||''} ${r.model||''}`.trim() : null;
         barcodeMultiList[idx].priceEur = r.price_eur || null;
       }
     });
     renderSmScannedList();
 
-    // 識別結果をまとめてトースト
     const identified = results.filter(r => r.brand || r.model).length;
     showToast(`🤖 ${identified}/${barcodeMultiList.length}件を識別しました`, 'success');
     statusEl.textContent = `🤖 AI識別完了: ${identified}/${barcodeMultiList.length}件`;
     statusEl.className = 'sm-ocr-status success';
 
   } catch(err) {
-    console.error('[Gemini bulk]', err);
+    console.error('[AI bulk]', err);
     statusEl.textContent = `⚠️ AI識別失敗: ${err.message}`;
     statusEl.className = 'sm-ocr-status';
     showToast('AI識別失敗。一括検索をお試しください。', 'error');
@@ -4226,59 +4279,92 @@ const GEMINI_PROMPT = `あなたはブランド品（エルメス・ロレック
 - price_visible: 価格タグが写真に写っているか true/false`;
 
 async function smGeminiVision(canvas) {
-  const statusEl = document.getElementById('sm-ocr-status');
-  statusEl.textContent = '🤖 AI解析中... Gemini Vision';
-  statusEl.className = 'sm-ocr-status active';
+  const statusEl  = document.getElementById('sm-ocr-status');
+  const provider  = localStorage.getItem('aiProvider') || 'gemini';
+  const isOpenAI  = provider === 'openai';
+  const aiLabel   = isOpenAI ? 'ChatGPT Vision' : 'Gemini Vision';
 
-  const apiKey = localStorage.getItem('geminiApiKey');
-  const model  = localStorage.getItem('geminiModel') || 'gemini-2.0-flash';
+  statusEl.textContent = `🤖 AI解析中... ${aiLabel}`;
+  statusEl.className = 'sm-ocr-status active';
 
   try {
     // Canvas → base64 JPEG（品質80%）
     const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+    let result;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    if (isOpenAI) {
+      // ── OpenAI Vision API ──────────────────────────────────
+      const apiKey = localStorage.getItem('openaiApiKey');
+      const model  = localStorage.getItem('openaiModel') || 'gpt-4o-mini';
+      if (!apiKey) throw new Error('OpenAI APIキーが設定されていません');
 
-    const body = {
-      contents: [{ parts: [
-        { text: GEMINI_PROMPT },
-        { inline_data: { mime_type: 'image/jpeg', data: base64 } }
-      ]}],
-      generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 512,
-        responseMimeType: 'application/json'
+      statusEl.textContent = '🤖 ChatGPT APIに送信中...';
+
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'text', text: GEMINI_PROMPT },
+              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64}`, detail: 'low' } }
+            ]
+          }],
+          max_tokens: 512,
+          temperature: 0.1,
+          response_format: { type: 'json_object' }
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || `HTTP ${res.status}`);
       }
-    };
+      const data = await res.json();
+      const text = data.choices?.[0]?.message?.content;
+      if (!text) throw new Error('OpenAIからの応答が空です');
+      result = JSON.parse(text.replace(/```json\n?|\n?```/g, '').trim());
 
-    statusEl.textContent = '🤖 Gemini APIに送信中...';
+    } else {
+      // ── Gemini Vision API ──────────────────────────────────
+      const apiKey = localStorage.getItem('geminiApiKey');
+      const model  = localStorage.getItem('geminiModel') || 'gemini-2.0-flash';
+      if (!apiKey) throw new Error('Gemini APIキーが設定されていません');
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+      statusEl.textContent = '🤖 Gemini APIに送信中...';
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [
+            { text: GEMINI_PROMPT },
+            { inline_data: { mime_type: 'image/jpeg', data: base64 } }
+          ]}],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 512, responseMimeType: 'application/json' }
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error('Geminiからの応答が空です');
+      result = JSON.parse(text.replace(/```json\n?|\n?```/g, '').trim());
     }
-
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('Geminiからの応答が空です');
-
-    // JSON解析（マークダウンコードブロックを除去）
-    const cleaned = text.replace(/```json\n?|\n?```/g, '').trim();
-    const result  = JSON.parse(cleaned);
 
     await smHandleGeminiResult(result, canvas);
 
   } catch (err) {
-    console.error('[Gemini]', err);
+    console.error('[AI Vision]', err);
     statusEl.textContent = `⚠️ AI識別失敗（${err.message}）→ OCRに切替中...`;
     statusEl.className = 'sm-ocr-status';
-    // フォールバック: Tesseract OCR
     setTimeout(() => smRunOCR(canvas), 800);
   }
 }
@@ -4413,72 +4499,172 @@ function smFindMatchingPreset(brand, modelName) {
   return bestScore >= 0.5 ? best : null;
 }
 
-// ── Gemini設定 UI関数 ─────────────────────────────────────────
-function saveGeminiSettings() {
-  const key   = document.getElementById('set-gemini-key')?.value?.trim();
-  const model = document.getElementById('set-gemini-model')?.value;
-  if (key) localStorage.setItem('geminiApiKey', key);
-  else     localStorage.removeItem('geminiApiKey');
-  if (model) localStorage.setItem('geminiModel', model);
+// ================================================================
+// AI設定 UI関数（Gemini / OpenAI 共通）
+// ================================================================
 
-  updateGeminiUI();
-  const msg = document.getElementById('gemini-status-msg');
-  if (msg) { msg.textContent = '✅ 保存しました'; msg.style.color = 'var(--green-light)'; }
+function switchAiProvider(provider) {
+  localStorage.setItem('aiProvider', provider);
+  const isOpenAI = provider === 'openai';
+
+  // タブのスタイル切替
+  const tabG = document.getElementById('ai-tab-gemini');
+  const tabO = document.getElementById('ai-tab-openai');
+  if (tabG) {
+    tabG.style.borderWidth  = isOpenAI ? '1px' : '2px';
+    tabG.style.borderColor  = isOpenAI ? 'var(--border)' : 'rgba(66,133,244,0.6)';
+    tabG.style.background   = isOpenAI ? 'var(--surface2)' : 'rgba(66,133,244,0.15)';
+    tabG.style.color        = isOpenAI ? 'var(--muted)' : '#8ab4f8';
+  }
+  if (tabO) {
+    tabO.style.borderWidth  = isOpenAI ? '2px' : '1px';
+    tabO.style.borderColor  = isOpenAI ? 'rgba(74,222,128,0.6)' : 'var(--border)';
+    tabO.style.background   = isOpenAI ? 'rgba(74,222,128,0.12)' : 'var(--surface2)';
+    tabO.style.color        = isOpenAI ? '#4ade80' : 'var(--muted)';
+  }
+
+  // セクション表示切替
+  const secG = document.getElementById('ai-section-gemini');
+  const secO = document.getElementById('ai-section-openai');
+  if (secG) secG.style.display = isOpenAI ? 'none' : 'block';
+  if (secO) secO.style.display = isOpenAI ? 'block' : 'none';
+
+  // 保存ボタンの色
+  const saveBtn = document.getElementById('ai-save-btn');
+  if (saveBtn) saveBtn.style.background = isOpenAI
+    ? 'linear-gradient(135deg,#16a34a,#22c55e)'
+    : 'linear-gradient(135deg,#1a73e8,#4285f4)';
+
   updateCameraButtonText();
 }
 
-function toggleGeminiKeyVisibility() {
-  const el = document.getElementById('set-gemini-key');
+function saveAiSettings() {
+  const provider = localStorage.getItem('aiProvider') || 'gemini';
+  const msg = document.getElementById('gemini-status-msg');
+
+  if (provider === 'openai') {
+    const key   = document.getElementById('set-openai-key')?.value?.trim();
+    const model = document.getElementById('set-openai-model')?.value;
+    if (key) localStorage.setItem('openaiApiKey', key);
+    else     localStorage.removeItem('openaiApiKey');
+    if (model) localStorage.setItem('openaiModel', model);
+  } else {
+    const key   = document.getElementById('set-gemini-key')?.value?.trim();
+    const model = document.getElementById('set-gemini-model')?.value;
+    if (key) localStorage.setItem('geminiApiKey', key);
+    else     localStorage.removeItem('geminiApiKey');
+    if (model) localStorage.setItem('geminiModel', model);
+  }
+
+  updateAiUI();
+  if (msg) { msg.textContent = '✅ 保存しました'; msg.style.color = 'var(--green-light)';
+    setTimeout(() => { msg.textContent = ''; }, 3000); }
+  updateCameraButtonText();
+  showToast('AI設定を保存しました');
+}
+
+// 旧関数の互換性維持
+function saveGeminiSettings() { saveAiSettings(); }
+
+function toggleAiKeyVisibility(inputId) {
+  const el = document.getElementById(inputId);
   if (!el) return;
   el.type = el.type === 'password' ? 'text' : 'password';
 }
+function toggleGeminiKeyVisibility() { toggleAiKeyVisibility('set-gemini-key'); }
 
-async function testGeminiKey() {
-  const key   = document.getElementById('set-gemini-key')?.value?.trim()
-              || localStorage.getItem('geminiApiKey');
-  const model = document.getElementById('set-gemini-model')?.value
-              || localStorage.getItem('geminiModel') || 'gemini-2.0-flash';
-  if (!key) { showToast('APIキーを入力してください', 'error'); return; }
-
-  const btn = document.getElementById('gemini-test-btn');
+async function testAiKey() {
+  const provider = localStorage.getItem('aiProvider') || 'gemini';
+  const btn = document.getElementById('ai-test-btn');
   const msg = document.getElementById('gemini-status-msg');
   if (btn) btn.textContent = '⏳ テスト中...';
-  if (msg) { msg.textContent = ''; }
+  if (msg) msg.textContent = '';
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: 'Hi, respond with just: OK' }] }] })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    if (provider === 'openai') {
+      const key   = document.getElementById('set-openai-key')?.value?.trim() || localStorage.getItem('openaiApiKey');
+      const model = document.getElementById('set-openai-model')?.value || localStorage.getItem('openaiModel') || 'gpt-4o-mini';
+      if (!key) throw new Error('OpenAI APIキーを入力してください');
+
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: 'Hi, reply with just: OK' }],
+          max_tokens: 5
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || `HTTP ${res.status}`);
+      }
+      if (msg) { msg.textContent = `✅ 接続成功 (${model})`; msg.style.color = 'var(--green-light)'; }
+      showToast('✅ OpenAI API 接続成功！', 'success');
+
+    } else {
+      const key   = document.getElementById('set-gemini-key')?.value?.trim() || localStorage.getItem('geminiApiKey');
+      const model = document.getElementById('set-gemini-model')?.value || localStorage.getItem('geminiModel') || 'gemini-2.0-flash';
+      if (!key) throw new Error('Gemini APIキーを入力してください');
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: 'Hi, respond with just: OK' }] }] })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || `HTTP ${res.status}`);
+      }
+      if (msg) { msg.textContent = `✅ 接続成功 (${model})`; msg.style.color = 'var(--green-light)'; }
+      showToast('✅ Gemini API 接続成功！', 'success');
     }
-    if (msg) { msg.textContent = `✅ 接続成功 (${model})`; msg.style.color = 'var(--green-light)'; }
-    showToast('✅ Gemini API 接続成功！', 'success');
   } catch (e) {
     if (msg) { msg.textContent = `❌ ${e.message}`; msg.style.color = 'var(--red-light)'; }
-    showToast(`❌ Gemini接続失敗: ${e.message}`, 'error');
+    showToast(`❌ 接続失敗: ${e.message}`, 'error');
   } finally {
     if (btn) btn.textContent = '🔬 接続テスト';
   }
 }
+// 旧関数の互換性
+function testGeminiKey() { testAiKey(); }
 
-function updateGeminiUI() {
-  const key    = localStorage.getItem('geminiApiKey');
-  const model  = localStorage.getItem('geminiModel') || 'gemini-2.0-flash';
-  const badge  = document.getElementById('gemini-active-badge');
-  const keyEl  = document.getElementById('set-gemini-key');
-  const modEl  = document.getElementById('set-gemini-model');
-  if (badge)  badge.style.display  = key ? 'block' : 'none';
-  if (keyEl && key) keyEl.placeholder = '****（設定済み）';
-  if (modEl && model) modEl.value = model;
+function updateAiUI() {
+  const provider  = localStorage.getItem('aiProvider') || 'gemini';
+  const geminiKey = localStorage.getItem('geminiApiKey');
+  const openaiKey = localStorage.getItem('openaiApiKey');
+  const hasKey    = provider === 'openai' ? !!openaiKey : !!geminiKey;
+
+  const badge = document.getElementById('gemini-active-badge');
+  if (badge) badge.style.display = hasKey ? 'block' : 'none';
+
+  // Gemini入力欄のプレースホルダ
+  const geminiKeyEl = document.getElementById('set-gemini-key');
+  if (geminiKeyEl && geminiKey) geminiKeyEl.placeholder = '****（設定済み）';
+  const geminiModEl = document.getElementById('set-gemini-model');
+  const savedGModel = localStorage.getItem('geminiModel') || 'gemini-2.0-flash';
+  if (geminiModEl) geminiModEl.value = savedGModel;
+
+  // OpenAI入力欄のプレースホルダ
+  const openaiKeyEl = document.getElementById('set-openai-key');
+  if (openaiKeyEl && openaiKey) openaiKeyEl.placeholder = '****（設定済み）';
+  const openaiModEl = document.getElementById('set-openai-model');
+  const savedOModel = localStorage.getItem('openaiModel') || 'gpt-4o-mini';
+  if (openaiModEl) openaiModEl.value = savedOModel;
+
+  // タブ表示を更新
+  switchAiProvider(provider);
 }
+// 旧関数の互換性
+function updateGeminiUI() { updateAiUI(); }
 
 function updateCameraButtonText() {
-  const key     = localStorage.getItem('geminiApiKey');
+  const provider  = localStorage.getItem('aiProvider') || 'gemini';
+  const geminiKey = localStorage.getItem('geminiApiKey');
+  const openaiKey = localStorage.getItem('openaiApiKey');
+  const key       = provider === 'openai' ? openaiKey : geminiKey;
+  const aiName    = provider === 'openai' ? 'ChatGPT Vision' : 'Gemini Vision';
   const btn     = document.getElementById('sm-camera-btn');
   const sub     = document.getElementById('sm-camera-sub');
   const notice  = document.getElementById('sm-gemini-notice');
@@ -4486,7 +4672,7 @@ function updateCameraButtonText() {
   if (!btn || !sub) return;
   if (key) {
     btn.childNodes[0].textContent = '📷🤖 AIで商品を自動識別 ';
-    sub.textContent = '(Gemini Vision — ブランド・モデル・価格を自動判定)';
+    sub.textContent = `(${aiName} — ブランド・モデル・価格を自動判定)`;
     sub.style.color = '#8ab4f8';
     btn.style.borderColor = 'rgba(66,133,244,0.6)';
     btn.style.background  = 'linear-gradient(135deg,rgba(66,133,244,0.15),rgba(124,92,191,0.15))';
