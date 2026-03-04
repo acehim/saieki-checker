@@ -702,6 +702,19 @@
   }
   .sm-rank-btn:active { transform: scale(0.95); }
 
+  /* ===== AI PRICE RESEARCH BUTTON ===== */
+  .sm-research-btn {
+    width:100%; padding:15px 16px; border-radius:14px; margin-bottom:12px;
+    border:1.5px solid rgba(124,92,191,0.5); background:rgba(124,92,191,0.1);
+    color:var(--accent-light); font-size:15px; font-weight:800; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    transition:all .2s;
+  }
+  .sm-research-btn:active { transform:scale(0.97); }
+  .sm-research-btn.done {
+    border-color:var(--green); background:rgba(11,204,140,0.1); color:var(--green-light);
+  }
+
   /* ===== VERDICT CARD - the main output ===== */
   .sm-verdict {
     border-radius: 18px; padding: 22px 18px 16px; text-align: center;
@@ -712,9 +725,14 @@
   }
   .sm-verdict.idle { opacity: .5; }
   .sm-verdict.buy {
-    background: rgba(11,204,140,0.07);
-    border-color: var(--green);
-    box-shadow: 0 0 30px rgba(11,204,140,0.15);
+    background: rgba(11,204,140,0.10);
+    border-color: var(--green); border-width: 3px;
+    box-shadow: 0 0 40px rgba(11,204,140,0.25);
+    animation: buyPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes buyPulse {
+    0%,100% { box-shadow: 0 0 30px rgba(11,204,140,0.2); }
+    50%      { box-shadow: 0 0 55px rgba(11,204,140,0.45); }
   }
   .sm-verdict.pass {
     background: rgba(255,56,96,0.07);
@@ -735,6 +753,26 @@
   }
   .sm-verdict-sub {
     font-size: 14px; color: var(--muted); margin-top: 2px;
+  }
+  /* BUY フラッシュオーバーレイ */
+  .buy-flash {
+    position:fixed; inset:0; z-index:99999; pointer-events:none;
+    background:rgba(11,204,140,0.18); border: 6px solid var(--green);
+    border-radius:0; animation: flashIn .5s ease-out forwards;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .buy-flash-inner {
+    background:rgba(6,11,24,0.92); border-radius:20px;
+    padding:28px 40px; text-align:center; pointer-events:none;
+  }
+  .buy-flash-emoji { font-size:64px; line-height:1; display:block; margin-bottom:8px; }
+  .buy-flash-text  { font-size:28px; font-weight:900; color:var(--green-light); }
+  .buy-flash-sub   { font-size:15px; color:var(--muted); margin-top:4px; }
+  @keyframes flashIn {
+    0%  { opacity:0; transform:scale(1.05); }
+    30% { opacity:1; transform:scale(1); }
+    70% { opacity:1; }
+    100%{ opacity:0; }
   }
   .sm-verdict-cost {
     font-size: 11px; color: var(--muted); margin-top: 8px;
@@ -1231,6 +1269,12 @@
         <button id="sm-bulk-gemini-btn" onclick="bulkGeminiIdentify()" style="flex:1;padding:9px;border-radius:9px;border:none;background:linear-gradient(135deg,#7c5cbf,#9d7fe8);color:#fff;font-weight:700;cursor:pointer;font-size:12px;display:none">🤖 AI一括識別</button>
       </div>
     </div>
+
+    <!-- 🔍 AI日本相場検索ボタン -->
+    <button class="sm-research-btn" id="sm-ai-research-btn" onclick="smAiPriceResearch()">
+      <span>🔍</span>
+      <span id="sm-research-btn-text">日本の買取相場をAIで調べる</span>
+    </button>
 
     <!-- EUR price input — BIG, touch-friendly -->
     <div class="sm-price-wrap">
@@ -3759,8 +3803,17 @@ function smRenderChips() {
   }).join('');
 }
 
+function smResetResearchBtn() {
+  const btn = document.getElementById('sm-ai-research-btn');
+  const txt = document.getElementById('sm-research-btn-text');
+  if (btn) { btn.classList.remove('done'); btn.disabled = false; }
+  if (txt) txt.textContent = '🔍 日本の買取相場をAIで調べる';
+  smLastVerdict = undefined;
+}
+
 function smSetChip(presetId) {
   smCurrentPresetId = presetId;
+  smResetResearchBtn();
   document.querySelectorAll('.sm-chip').forEach(c => c.classList.remove('active'));
   const chip = document.getElementById('sm-chip-' + presetId);
   if (chip) { chip.classList.add('active'); chip.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' }); }
@@ -3870,7 +3923,13 @@ function onSmCalcChange() {
         costStr
       );
       if (addBtn) addBtn.style.display = 'block';
+      // BUYアラート（前回BUYでなかった場合のみ発火）
+      if (typeof smLastVerdict === 'undefined' || smLastVerdict !== 'buy') {
+        smShowBuyAlert(Math.round(profit), smGetProductName() || storeName);
+      }
+      smLastVerdict = 'buy';
     } else if (profit >= -10000) {
+      smLastVerdict = 'check';
       smSetVerdict('check', '🟡 要確認 — CHECK',
         (profit >= 0 ? '+' : '▲') + '¥' + Math.round(Math.abs(profit)).toLocaleString(),
         `${pct}%　条件次第で黒字の可能性`,
@@ -3878,6 +3937,7 @@ function onSmCalcChange() {
       );
       if (addBtn) addBtn.style.display = 'none';
     } else {
+      smLastVerdict = 'pass';
       smSetVerdict('pass', '🔴 PASS — 見送り',
         '▲¥' + Math.round(Math.abs(profit)).toLocaleString(),
         `${Math.abs(pct)}%　損失`,
@@ -4327,6 +4387,110 @@ function smRenderSession() {
 
 // ── OCR: カメラで価格タグを読み取る ──────────────────────────
 let smCameraStream = null;
+
+// ================================================================
+// 🔍 AI日本相場リサーチ — 買取価格を自動取得
+// ================================================================
+async function smAiPriceResearch() {
+  // 商品名を取得（プリセット優先 → 手動名）
+  const preset  = smCurrentPresetId ? PRESETS.find(p => p.id === smCurrentPresetId) : null;
+  const manName = document.getElementById('sm-manual-name')?.value?.trim();
+  const productName = (preset ? `${preset.brand || ''} ${preset.name}`.trim() : null) || manName;
+
+  if (!productName) {
+    showToast('先に商品を選択またはカメラで撮影してください', 'error'); return;
+  }
+
+  const provider = localStorage.getItem('aiProvider') || 'openai';
+  const apiKey   = provider === 'openai' ? localStorage.getItem('openaiApiKey') : localStorage.getItem('geminiApiKey');
+  if (!apiKey) { showToast('APIキーを設定してください（⚙️設定タブ）', 'error'); return; }
+
+  const btn  = document.getElementById('sm-ai-research-btn');
+  const txt  = document.getElementById('sm-research-btn-text');
+  if (btn) { btn.disabled = true; }
+  if (txt) txt.textContent = '🤖 AI検索中...';
+
+  const prompt = `あなたは日本のブランド中古市場の専門家です。
+商品: ${productName}
+コンディション: ${smCurrentRank}（N=新品, S=未使用, SA=未使用に近い, AB=使用感少, B=使用感あり）
+
+この商品の2026年現在の日本市場価格を推定してください。
+必ず以下のJSON形式のみで回答（説明不要）:
+{"buyback_min":数値,"buyback_max":数値,"buyback_recommended":数値,"mercari_avg":数値,"confidence":"high","note":"20字以内のコメント"}
+buyback=ブランド買取専門店（なんぼや等）での買取額, mercari_avg=メルカリ平均売買実績。単位は円(整数)。`;
+
+  try {
+    let result;
+    if (provider === 'openai') {
+      const model = localStorage.getItem('openaiModel') || 'gpt-4o-mini';
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+        body: JSON.stringify({ model, messages:[{role:'user',content:prompt}],
+          max_tokens:200, temperature:0.1, response_format:{type:'json_object'} })
+      });
+      if (!res.ok) { const e=await res.json(); throw new Error(e.error?.message||`HTTP ${res.status}`); }
+      const d = await res.json();
+      result = JSON.parse(d.choices?.[0]?.message?.content || '{}');
+    } else {
+      const model = localStorage.getItem('geminiModel') || 'gemini-2.0-flash';
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{parts:[{text:prompt}]}],
+          generationConfig:{temperature:0.1,maxOutputTokens:200,responseMimeType:'application/json'} }) });
+      if (!res.ok) { const e=await res.json(); throw new Error(e.error?.message||`HTTP ${res.status}`); }
+      const d = await res.json();
+      result = JSON.parse((d.candidates?.[0]?.content?.parts?.[0]?.text||'{}').replace(/```json\n?|\n?```/g,'').trim());
+    }
+
+    if (!result.buyback_recommended) throw new Error('価格データが取得できませんでした');
+
+    // 買取価格をセット
+    const kaitori = document.getElementById('sm-manual-kaitori');
+    if (kaitori) {
+      kaitori.value = result.buyback_recommended;
+      // 手動パネルを開く
+      const panel = document.getElementById('sm-manual-panel');
+      const arrow = document.getElementById('sm-manual-arrow');
+      if (panel && panel.style.display === 'none') {
+        panel.style.display = 'block';
+        if (arrow) arrow.textContent = '▲';
+      }
+      onSmCalcChange();
+    }
+
+    const conf  = result.confidence === 'high' ? '✅' : '⚠️';
+    const range = `¥${(result.buyback_min||0).toLocaleString()}〜¥${(result.buyback_max||0).toLocaleString()}`;
+    const merc  = result.mercari_avg ? `  メルカリ相場 ¥${result.mercari_avg.toLocaleString()}` : '';
+    if (txt) txt.textContent = `${conf} 買取¥${result.buyback_recommended.toLocaleString()} (${range})${merc}`;
+    if (btn) { btn.classList.add('done'); btn.disabled = false; }
+
+    const ocr = document.getElementById('sm-ocr-status');
+    if (ocr && result.note) { ocr.textContent = `🤖 ${result.note}`; ocr.className='sm-ocr-status'; }
+
+  } catch(err) {
+    console.error('[AI Price Research]', err);
+    showToast(`⚠️ 相場検索失敗: ${err.message}`, 'error');
+    if (btn)  btn.disabled = false;
+    if (txt)  txt.textContent = '🔍 日本の買取相場をAIで調べる';
+  }
+}
+
+// BUYアラート（大きな画面フラッシュ + バイブ）
+function smShowBuyAlert(profitJpy, productLabel) {
+  // バイブレーション（対応デバイスのみ）
+  if (navigator.vibrate) navigator.vibrate([150, 80, 150, 80, 300]);
+
+  const el = document.createElement('div');
+  el.className = 'buy-flash';
+  el.innerHTML = `<div class="buy-flash-inner">
+    <span class="buy-flash-emoji">🟢</span>
+    <div class="buy-flash-text">BUY！ +¥${profitJpy.toLocaleString()}</div>
+    <div class="buy-flash-sub">${productLabel || ''}</div>
+  </div>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
 
 function smOpenCamera() {
   // Reuse the existing scan modal but target 'scanmode'
