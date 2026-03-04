@@ -4476,8 +4476,6 @@ async function smHandleGeminiResult(result, canvas) {
   }
 
   // ── 商品名をマニュアル入力欄にセット ─────────────────────────
-  const productNameParts = [brand, modelName, material, color].filter(Boolean);
-  const productName = productNameParts.join(' ');
   if (productName) {
     const nameEl = document.getElementById('sm-manual-name');
     if (nameEl && !nameEl.value) nameEl.value = productName;
