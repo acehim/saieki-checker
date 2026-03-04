@@ -3629,8 +3629,9 @@ async function capturePhoto() {
   canvas.height = video.videoHeight;
   ctx.drawImage(video, 0, 0);
 
-  // ⚡ 即判定モード: バーコード検出をスキップしてAI直行（商品模様の誤検知を防止）
-  if (scanTarget === 'scanmode') {
+  // ⚡ 即判定 / 汎用リサーチ: バーコード検出を完全スキップ → AI直行
+  // （商品の模様・ロゴ・テキストの誤検知を防止。barcode-multiのみバーコード検出を使用）
+  if (scanTarget === 'scanmode' || scanTarget === 'general') {
     stopCamera();
     const _aiProvider = localStorage.getItem('aiProvider') || 'gemini';
     const _aiKey = _aiProvider === 'openai'
@@ -3644,7 +3645,7 @@ async function capturePhoto() {
     return;
   }
 
-  // バーコード/QRスキャンモード: BarcodeDetector優先 → jsQRフォールバック
+  // 連続バーコードスキャンモードのみ: BarcodeDetector優先 → jsQRフォールバック
   if (_barcodeDetector) {
     try {
       const codes = await _barcodeDetector.detect(canvas);
@@ -4448,7 +4449,26 @@ async function smGeminiVision(canvas) {
 async function smHandleGeminiResult(result, canvas) {
   const statusEl = document.getElementById('sm-ocr-status');
   const { brand, model: modelName, price_eur, material, color, confidence } = result;
+  const productNameParts = [brand, modelName, material, color].filter(Boolean);
+  const productName = productNameParts.join(' ');
 
+  // ── 汎用リサーチ / シミュレーターカメラモード ─────────────────
+  if (scanTarget === 'general') {
+    // 各タブの商品名フィールドに自動入力（検索ウィンドウは開かない）
+    if (productName) {
+      const nameEl1 = document.getElementById('g-item-name');
+      const nameEl2 = document.getElementById('inp-name');
+      if (nameEl1) { nameEl1.value = productName; if (typeof gAutoDetectCategory === 'function') gAutoDetectCategory(productName); }
+      if (nameEl2) { nameEl2.value = productName; }
+    }
+    const confIcon = confidence === 'high' ? '✅' : confidence === 'medium' ? '⚠️' : '❓';
+    const priceInfo = price_eur ? ` €${price_eur.toLocaleString()}` : '';
+    showToast(`🤖 ${confIcon} ${productName || '識別できませんでした'}${priceInfo}`, productName ? 'success' : 'info');
+    setTimeout(() => closeScanModal(), 900);
+    return;
+  }
+
+  // ── 以下は即判定モード（scanmode）専用 ──────────────────────
   // ── EUR価格をセット ──────────────────────────────────────────
   if (price_eur && price_eur >= 50) {
     document.getElementById('sm-eur-price').value = price_eur;
