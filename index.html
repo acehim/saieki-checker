@@ -1008,6 +1008,74 @@
   .ldg-filter-btn { padding:5px 12px; border-radius:8px; font-size:12px; font-weight:700;
     border:1px solid var(--border); background:var(--surface2); color:var(--muted); cursor:pointer; }
   .ldg-filter-btn.active { border-color:var(--accent-light); color:var(--accent-light); background:var(--surface3); }
+
+  /* ===== MOBILE OPTIMIZATION (≤640px) ===== */
+  @media (max-width: 640px) {
+    /* ─ ボトムナビゲーション ─ */
+    body {
+      padding-bottom: max(84px, calc(68px + env(safe-area-inset-bottom)));
+    }
+    .tab-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 9000;
+      background: rgba(6,11,24,0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: env(safe-area-inset-bottom);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      flex-wrap: nowrap;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex: none;
+      min-width: 68px;
+      padding: 10px 4px 6px;
+      border-bottom: none;
+      border-top: 2.5px solid transparent;
+    }
+    .tab-btn.active {
+      border-top-color: var(--accent-light);
+      border-bottom-color: transparent;
+    }
+    .tab-main { font-size: 13px; white-space: nowrap; }
+    .tab-sub  { font-size: 9px;  white-space: nowrap; }
+
+    /* ─ スキャンモーダル: ボトムシート ─ */
+    .scan-modal { align-items: flex-end; padding: 0; }
+    .scan-modal-box {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 20px 20px 0 0;
+      max-height: 94vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+    #scan-video { max-height: 50vh; width: 100%; object-fit: cover; border-radius: 12px; }
+
+    /* ─ カメラボタン: タッチしやすく ─ */
+    .sm-ocr-btn { padding: 18px 16px; font-size: 17px; min-height: 60px; }
+
+    /* ─ 商品チップ: タッチターゲット拡大 ─ */
+    .sm-chip { padding: 10px 16px; font-size: 13px; }
+
+    /* ─ EUR入力 ─ */
+    .sm-price-input { font-size: 44px; padding: 16px 16px 16px 52px; }
+    .sm-price-currency { font-size: 32px; }
+
+    /* ─ ランクボタン ─ */
+    .sm-rank-btn { padding: 12px 0; font-size: 14px; }
+
+    /* ─ 判定カード ─ */
+    .verdict-card { margin: 0 -2px; }
+    .verdict-amount { font-size: 38px; }
+  }
 </style>
 <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -3574,11 +3642,14 @@ async function capturePhoto() {
     if (code) { onBarcodeDetected(code.data, 'qr_code'); return; }
   }
 
-  // ⚡ 即判定モード: Gemini AI優先 → フォールバックでTesseract OCR
+  // ⚡ 即判定モード: AI優先（OpenAI/Gemini両対応） → フォールバックでTesseract OCR
   if (scanTarget === 'scanmode') {
     stopCamera();
-    const geminiKey = localStorage.getItem('geminiApiKey');
-    if (geminiKey) {
+    const _aiProvider = localStorage.getItem('aiProvider') || 'gemini';
+    const _aiKey = _aiProvider === 'openai'
+      ? localStorage.getItem('openaiApiKey')
+      : localStorage.getItem('geminiApiKey');
+    if (_aiKey) {
       smGeminiVision(canvas);
     } else {
       smRunOCR(canvas);
@@ -4423,12 +4494,14 @@ async function smHandleGeminiResult(result, canvas) {
     statusEl.textContent = `${confIcon} ${brand || ''} ${modelName || ''} を識別 → ${matchedPreset.name} に自動マッチ`;
     statusEl.className = 'sm-ocr-status success';
     showToast(`🤖 AI識別: ${matchedPreset.name}`, 'success');
+    setTimeout(() => closeScanModal(), 900);  // 自動クローズ
   } else if (brand || modelName) {
     // プリセット一致なし → 商品名だけ表示
     const confIcon = confidence === 'high' ? '✅' : '⚠️';
     statusEl.textContent = `${confIcon} ${productName}${price_eur ? ` €${price_eur.toLocaleString()}` : ''} — プリセット未登録（手動で選択してください）`;
     statusEl.className = 'sm-ocr-status';
     showToast(`🤖 識別: ${productName}`, 'info');
+    setTimeout(() => closeScanModal(), 1400);  // 自動クローズ
   } else {
     // 商品識別不可 → canvasがあればOCR、なければそのまま終了
     if (canvas) {
