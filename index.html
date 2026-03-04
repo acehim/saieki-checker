@@ -3629,20 +3629,7 @@ async function capturePhoto() {
   canvas.height = video.videoHeight;
   ctx.drawImage(video, 0, 0);
 
-  // Try barcode on full resolution（BarcodeDetector優先 → jsQRフォールバック）
-  if (_barcodeDetector) {
-    try {
-      const codes = await _barcodeDetector.detect(canvas);
-      if (codes.length > 0) { onBarcodeDetected(codes[0].rawValue, codes[0].format); return; }
-    } catch(e) {}
-  }
-  if (typeof jsQR !== 'undefined') {
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
-    if (code) { onBarcodeDetected(code.data, 'qr_code'); return; }
-  }
-
-  // ⚡ 即判定モード: AI優先（OpenAI/Gemini両対応） → フォールバックでTesseract OCR
+  // ⚡ 即判定モード: バーコード検出をスキップしてAI直行（商品模様の誤検知を防止）
   if (scanTarget === 'scanmode') {
     stopCamera();
     const _aiProvider = localStorage.getItem('aiProvider') || 'gemini';
@@ -3655,6 +3642,19 @@ async function capturePhoto() {
       smRunOCR(canvas);
     }
     return;
+  }
+
+  // バーコード/QRスキャンモード: BarcodeDetector優先 → jsQRフォールバック
+  if (_barcodeDetector) {
+    try {
+      const codes = await _barcodeDetector.detect(canvas);
+      if (codes.length > 0) { onBarcodeDetected(codes[0].rawValue, codes[0].format); return; }
+    } catch(e) {}
+  }
+  if (typeof jsQR !== 'undefined') {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+    if (code) { onBarcodeDetected(code.data, 'qr_code'); return; }
   }
 
   // No barcode - capture for visual search
