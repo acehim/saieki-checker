@@ -3371,7 +3371,7 @@ async function onBarcodeDetected(barcode, format) {
 
   } else if (scanTarget === 'scanmode') {
     closeScanModal();
-    const provider  = localStorage.getItem('aiProvider') || 'gemini';
+    const provider  = localStorage.getItem('aiProvider') || 'openai';
     const aiKey     = provider === 'openai' ? localStorage.getItem('openaiApiKey') : localStorage.getItem('geminiApiKey');
     if (aiKey) {
       showToast(`🤖 AIでバーコードを商品識別中...`, 'info');
@@ -3393,7 +3393,7 @@ async function smGeminiIdentifyBarcode(barcode, formatLabel) {
   statusEl.textContent = '🤖 バーコードから商品識別中...';
   statusEl.className = 'sm-ocr-status active';
 
-  const provider = localStorage.getItem('aiProvider') || 'gemini';
+  const provider = localStorage.getItem('aiProvider') || 'openai';
   const prompt = `バーコード番号「${barcode}」（形式: ${formatLabel}）からブランド品を識別してください。
 必ず以下のJSON形式のみで回答してください（説明文・マークダウン不要）:
 {"brand":"ブランド名","model":"モデル名・型番","price_eur":null,"material":null,"color":null,"confidence":"high/medium/low","price_visible":false}
@@ -3530,7 +3530,7 @@ function bulkSearchBarcodes() {
 // AI一括識別：全バーコードをGeminiに一括で投げて識別
 async function bulkGeminiIdentify() {
   if (barcodeMultiList.length === 0) return;
-  const provider = localStorage.getItem('aiProvider') || 'gemini';
+  const provider = localStorage.getItem('aiProvider') || 'openai';
   const apiKey   = provider === 'openai' ? localStorage.getItem('openaiApiKey') : localStorage.getItem('geminiApiKey');
   if (!apiKey) { showToast('AIのAPIキーを設定してください', 'error'); return; }
 
@@ -3633,7 +3633,7 @@ async function capturePhoto() {
   // （商品の模様・ロゴ・テキストの誤検知を防止。barcode-multiのみバーコード検出を使用）
   if (scanTarget === 'scanmode' || scanTarget === 'general') {
     stopCamera();
-    const _aiProvider = localStorage.getItem('aiProvider') || 'gemini';
+    const _aiProvider = localStorage.getItem('aiProvider') || 'openai';
     const _aiKey = _aiProvider === 'openai'
       ? localStorage.getItem('openaiApiKey')
       : localStorage.getItem('geminiApiKey');
@@ -4357,7 +4357,7 @@ const GEMINI_PROMPT = `あなたはブランド品（エルメス・ロレック
 
 async function smGeminiVision(canvas) {
   const statusEl  = document.getElementById('sm-ocr-status');
-  const provider  = localStorage.getItem('aiProvider') || 'gemini';
+  const provider  = localStorage.getItem('aiProvider') || 'openai';
   const isOpenAI  = provider === 'openai';
   const aiLabel   = isOpenAI ? 'ChatGPT Vision' : 'Gemini Vision';
 
@@ -4637,7 +4637,7 @@ function switchAiProvider(provider) {
 }
 
 function saveAiSettings() {
-  const provider = localStorage.getItem('aiProvider') || 'gemini';
+  const provider = localStorage.getItem('aiProvider') || 'openai';
   const msg = document.getElementById('gemini-status-msg');
 
   if (provider === 'openai') {
@@ -4672,7 +4672,7 @@ function toggleAiKeyVisibility(inputId) {
 function toggleGeminiKeyVisibility() { toggleAiKeyVisibility('set-gemini-key'); }
 
 async function testAiKey() {
-  const provider = localStorage.getItem('aiProvider') || 'gemini';
+  const provider = localStorage.getItem('aiProvider') || 'openai';
   const btn = document.getElementById('ai-test-btn');
   const msg = document.getElementById('gemini-status-msg');
   if (btn) btn.textContent = '⏳ テスト中...';
@@ -4729,7 +4729,7 @@ async function testAiKey() {
 function testGeminiKey() { testAiKey(); }
 
 function updateAiUI() {
-  const provider  = localStorage.getItem('aiProvider') || 'gemini';
+  const provider  = localStorage.getItem('aiProvider') || 'openai';
   const geminiKey = localStorage.getItem('geminiApiKey');
   const openaiKey = localStorage.getItem('openaiApiKey');
   const hasKey    = provider === 'openai' ? !!openaiKey : !!geminiKey;
@@ -4758,7 +4758,7 @@ function updateAiUI() {
 function updateGeminiUI() { updateAiUI(); }
 
 function updateCameraButtonText() {
-  const provider  = localStorage.getItem('aiProvider') || 'gemini';
+  const provider  = localStorage.getItem('aiProvider') || 'openai';
   const geminiKey = localStorage.getItem('geminiApiKey');
   const openaiKey = localStorage.getItem('openaiApiKey');
   const key       = provider === 'openai' ? openaiKey : geminiKey;
